@@ -1,0 +1,78 @@
+""" This code is written to solve the package problem. The objective is to
+find the maximum number of items that can be put in to the package while the
+total weight is less than a limit but the overall cost is as high as possible.
+
+each item has the format (index number,weight,cost).
+"""
+
+# get working directory and set it to your choice.
+import os
+
+# importing some useful libraries
+import numpy
+
+# Reading the data file
+
+file_pointer = open('knapsack_data.txt', 'r')
+data_lines = file_pointer.readlines()
+number_datalines = len(data_lines)
+
+
+# getting the individual elements of each line. this represents the maximum
+# weight for each knapsack and the details of the items that can be put in it.
+
+for i in range(0,number_datalines):
+#for i in range(0,1):
+
+    temp_line = data_lines[i]
+    temp_line_1 = temp_line.split()
+    weight_limit = int(temp_line_1[0])
+
+    item_array = numpy.empty([len(temp_line_1)-2,2])
+    for j in range(2,len(temp_line_1)):
+        temp_vals = temp_line_1[j]
+        item_vals_single = temp_vals.partition(",")
+        
+        index_temp = item_vals_single[0]
+        index = int(index_temp.partition("(")[2])
+        vals = item_vals_single[2]
+        vals_temp = vals.partition(",")
+        item_array[index-1,0] = float(vals_temp[0])
+        item2temp = vals_temp[2]
+        item2temp1 = item2temp.partition(",)")
+        item2temp2 = item2temp1[0]
+        item2temp3 = item2temp2.partition("$")
+        item2temp4 = item2temp3[2].partition(")")
+        item_array[index-1,1] = float(item2temp4[0])
+
+
+
+        
+# The weight limit for each line is in the weight_limit variable and the values
+# of the items are in the item array
+# now to solve the knapsack problem using dynamic programming
+    knapsack_table = numpy.empty([len(temp_line_1)-2,weight_limit])
+    item_identifier = numpy.empty([len(temp_line_1)-2,weight_limit])
+    for w in range(0,weight_limit):
+        knapsack_table[0,w] = 0
+    for j in range(1,len(temp_line_1)-2):
+        for w in range(0,weight_limit):
+            if((item_array[j,0] <= w) and (item_array[j,1] + knapsack_table[j-1,w-item_array[j,0]] > knapsack_table[j-1,w])):
+                knapsack_table[j,w] = item_array[j,1]+knapsack_table[j-1,w-item_array[j,0]]
+                item_identifier[j,w] = 1
+            else:
+                knapsack_table[j,w] = knapsack_table[j-1,w] 
+                item_identifier[j,w] = 0
+
+    output = []
+    weight_temp = weight_limit
+    for j in range((len(temp_line_1)-2)-1,0,-1):
+        print(j)
+        if(item_identifier[j,weight_temp-1] == 1):
+            output.append(j+1)
+            weight_temp = weight_temp - item_array[j,0]
+    print("the items in the knapsack are",output)
+                   
+    
+    
+
